@@ -4,6 +4,7 @@ import logging
 from .Providers.AniList import AniList
 from .Providers.ComicVine import ComicVine
 from .Providers.MangaUpdates import MangaUpdates
+from .Providers.Nhentai import Nhentai
 
 logger = logging.getLogger()
 
@@ -11,6 +12,7 @@ logger = logging.getLogger()
 MangaUpdates.__dont_clean = ""
 AniList.__dont_clean = ""
 ComicVine.__dont_clean = ""
+Nhentai.__dont_clean = ""
 
 # NOTE: This is a stopgap solution until dynamic loader is implemented
 class ScraperFactory:

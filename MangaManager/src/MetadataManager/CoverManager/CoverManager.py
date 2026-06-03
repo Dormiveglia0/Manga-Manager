@@ -10,6 +10,7 @@ from tkinter.ttk import Treeview
 import numpy as np
 from PIL import Image, ImageTk
 
+from src.Common.i18n import tr
 from src.Common import ResourceLoader
 from src.Common.LoadedComicInfo.LoadedComicInfo import CoverActions, LoadedComicInfo
 from src.MetadataManager.GUI.MessageBox import MessageBoxWidgetFactory as mb
@@ -56,7 +57,7 @@ class ComicFrame(CoverFrame):
         self.cover_canvas.action_id = self.cover_canvas.create_text(150, 285, text="", justify="center", fill="yellow",
                                                                     font=('Helvetica 15 bold'))
         self.cover_canvas.no_image_warning_id = self.cover_canvas.create_text(150, 120,
-                                                                              text="No Cover!\nNo image\ncould be\nloaded",
+                                                                              text=tr("cover.no_image"),
                                                                               justify="center", fill="red",
                                                                               state="hidden",
                                                                               font=('Helvetica 28 bold'))
@@ -77,7 +78,7 @@ class ComicFrame(CoverFrame):
         self.cover_action(self.loaded_cinfo, action=CoverActions.APPEND, parent=self))
         btn.pack(side="left", fill="x", expand=True)
 
-        btn = Button(btn_frame, text="Reset", command=lambda:
+        btn = Button(btn_frame, text=tr("button.reset"), command=lambda:
         self.cover_action(self.loaded_cinfo, action=CoverActions.RESET))
         btn.pack(side="left", fill="x", expand=True)
         self.cover_action(self.loaded_cinfo, auto_trigger=True, proc_update=False)
@@ -98,7 +99,7 @@ class ComicFrame(CoverFrame):
                                                                             fill="yellow",
                                                                             font=('Helvetica 15 bold'))
         self.backcover_canvas.no_image_warning_id = self.backcover_canvas.create_text(150, 120,
-                                                                                      text="No Cover!\nNo image\ncould be\nloaded",
+                                                                                      text=tr("cover.no_image"),
                                                                                       justify="center", fill="red",
                                                                                       state="hidden",
                                                                                       font=('Helvetica 28 bold'))
@@ -119,7 +120,7 @@ class ComicFrame(CoverFrame):
         self.backcover_action(self.loaded_cinfo, action=CoverActions.APPEND, parent=self))
         btn.pack(side="left", fill="x", expand=True)
 
-        btn = Button(btn_frame, text="Reset", command=lambda:
+        btn = Button(btn_frame, text=tr("button.reset"), command=lambda:
         self.backcover_action(self.loaded_cinfo, action=CoverActions.RESET))
         btn.pack(side="left", fill="x", expand=True)
 
@@ -142,7 +143,7 @@ class CoverManager(tkinter.Toplevel):
                 f"Error initializing the {self.__class__.__name__} Extension. The 'name' attribute must be set in the ExtensionApp class.")
         # if self.embedded_ui:
         super().__init__(master=master, **kwargs)
-        self.title(self.__class__.name)
+        self.title(tr("window.cover_manager"))
         if super_ is not None:
             self._super = super_
         global overlay_image
@@ -151,7 +152,7 @@ class CoverManager(tkinter.Toplevel):
 
         self.serve_gui()
         if not self._super.loaded_cinfo_list:
-            mb.showwarning(self, "No files selected", "No files were selected so none will be displayed in cover manager")
+            mb.showwarning(self, tr("message.no_files_selected_title"), tr("message.cover_manager_empty"))
             # self.deiconify()
             self.destroy()
             return
@@ -227,45 +228,45 @@ class CoverManager(tkinter.Toplevel):
         #
         tree = self.tree = Treeview(side_panel_control, columns=("Filename", "type"), show="headings", height=8)
         tree.column("#1")
-        tree.heading("#1", text="Filename")
+        tree.heading("#1", text=tr("label.filename"))
         tree.column("#2", anchor=CENTER, width=80)
-        tree.heading("#2", text="Type")
+        tree.heading("#2", text=tr("label.type"))
         tree.pack(expand=True, fill="y", pady=(80, 0), padx=30, side="top")
         action_buttons = Frame(side_panel_control)
         action_buttons.pack(ipadx=20, ipady=20, pady=(0, 80), fill="x", padx=30)
 
-        ButtonWidget(master=action_buttons, text="Delete Selected",
+        ButtonWidget(master=action_buttons, text=tr("button.delete_selected"),
                      tooltip="Deletes the image for the selected cover/backcovers",
                      command=lambda: self.run_bulk_action(CoverActions.DELETE)).pack(side="top", fill="x", ipady=10)
-        ButtonWidget(master=action_buttons, text="Append to Selected",
+        ButtonWidget(master=action_buttons, text=tr("button.append_selected"),
                      tooltip="Appends the image for the selected cover/backcovers",
                      command=lambda: self.run_bulk_action(CoverActions.APPEND)).pack(side="top", fill="x", ipady=10)
-        ButtonWidget(master=action_buttons, text="Replace Selected",
+        ButtonWidget(master=action_buttons, text=tr("button.replace_selected"),
                      tooltip="Replaces the image for the selected cover/backcovers",
                      command=lambda: self.run_bulk_action(CoverActions.REPLACE)).pack(side="top", fill="x", ipady=10)
-        ButtonWidget(master=action_buttons, text="Clear Selection",
+        ButtonWidget(master=action_buttons, text=tr("button.clear_selection"),
                      command=self.clear_selection).pack(fill="x", ipady=10)
-        ButtonWidget(master=action_buttons, text="Close window",
+        ButtonWidget(master=action_buttons, text=tr("button.close_window"),
                      command=self.exit_btn).pack(fill="x", ipady=10)
 
-        self.select_similar_btn = ButtonWidget(master=action_buttons, text="Select similar", state="disabled",
+        self.select_similar_btn = ButtonWidget(master=action_buttons, text=tr("button.select_similar"), state="disabled",
                                                command=self.select_similar)
         self.select_similar_btn.pack(fill="x", ipady=10)
 
         frame = Frame(action_buttons)
         frame.pack(fill="x", pady=(10, 0))
-        tkinter.Label(frame, text="Delta %").pack(side="left")
+        tkinter.Label(frame, text=tr("label.delta")).pack(side="left")
         self.delta_entry = tkinter.Entry(frame, width="10")
         self.delta_entry.insert(0, "90")
         self.delta_entry.pack(side="left")
 
-        frame = tkinter.LabelFrame(action_buttons, text="Scan:")
+        frame = tkinter.LabelFrame(action_buttons, text=tr("label.scan"))
         frame.pack(fill="x", expand=True, pady=(0, 5))
         self.scan_covers = tkinter.BooleanVar(value=True)
         self.scan_backcovers = tkinter.BooleanVar(value=False)
 
-        tkinter.Checkbutton(frame, text="Covers", variable=self.scan_covers).pack()
-        tkinter.Checkbutton(frame, text="Back Covers", variable=self.scan_backcovers).pack()
+        tkinter.Checkbutton(frame, text=tr("label.covers"), variable=self.scan_covers).pack()
+        tkinter.Checkbutton(frame, text=tr("label.back_covers"), variable=self.scan_backcovers).pack()
 
         content_frame = Frame(self)
         content_frame.pack(fill="both", side="left", expand=True)
@@ -362,10 +363,10 @@ class CoverManager(tkinter.Toplevel):
                     cover = loaded_cinfo.new_cover_cache
                     # Show the Action label
                     canva.itemconfig(canva.action_id,
-                                     text="Append" if
-                                     action == CoverActions.APPEND else "Replace", state="normal")
+                                     text=tr("cover.append") if
+                                     action == CoverActions.APPEND else tr("cover.replace"), state="normal")
                 case CoverActions.DELETE:
-                    canva.itemconfig(canva.action_id, text="Delete", state="normal")
+                    canva.itemconfig(canva.action_id, text=tr("cover.delete"), state="normal")
                 case _:
                     canva.itemconfig(canva.overlay_id, state="hidden")
                     canva.itemconfig(canva.action_id, text="", state="normal")

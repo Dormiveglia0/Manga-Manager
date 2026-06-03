@@ -4,6 +4,7 @@ from typing import NamedTuple
 
 import requests
 
+from src.Common.i18n import tr
 from src.MetadataManager.GUI.widgets import HyperlinkLabelWidget, ButtonWidget
 from src.__version__ import __version__
 
@@ -95,7 +96,7 @@ class AboutWindow:
         HyperlinkLabelWidget(self.frame, "Version number", url_text=version,
                              url=version_url).pack(fill="x", expand=True, side="top", anchor="center", pady=10)
         # create close button
-        ButtonWidget(master=self.frame, text="Close", command=self.close).pack()
+        ButtonWidget(master=self.frame, text=tr("button.close"), command=self.close).pack()
 
     def close(self):
         self.top_level.destroy()

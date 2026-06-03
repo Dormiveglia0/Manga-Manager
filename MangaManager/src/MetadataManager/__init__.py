@@ -1,6 +1,7 @@
 import logging
 import src
 from src.Common import ResourceLoader
+from src.Common.i18n import tr
 from src.MetadataManager.GUI.windows.MainWindow import MainWindow
 from src.MetadataManager.GUI.OneTimeMessageBox import OneTimeMessageBox
 from src.MetadataManager.GUI.widgets.MessageBoxWidget import MessageBoxButton
@@ -31,8 +32,8 @@ def execute_gui():
         logger.exception("Exception loading icon")
 
     OneTimeMessageBox("test_welcome_to_mm"). \
-        with_title("Welcome to MangaManager"). \
-        with_actions([MessageBoxButton(0, "Thanks")]). \
+        with_title(tr("message.welcome_title")). \
+        with_actions([MessageBoxButton(0, tr("message.welcome_action"))]). \
         build().prompt()
 
     app.mainloop()

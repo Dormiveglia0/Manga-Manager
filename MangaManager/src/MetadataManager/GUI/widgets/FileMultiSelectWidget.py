@@ -3,6 +3,7 @@ import logging
 import tkinter
 from tkinter.ttk import Treeview
 
+from src.Common.i18n import tr
 from src.Common.LoadedComicInfo.LoadedComicInfo import LoadedComicInfo
 
 logger = logging.getLogger()
@@ -11,7 +12,7 @@ logger = logging.getLogger()
 class FileMultiSelectWidget(Treeview):
     def __init__(self, *args, **kwargs):
         super(FileMultiSelectWidget, self).__init__(*args, **kwargs)
-        self.heading('#0', text='Click to select all files', command=self.select_all)
+        self.heading('#0', text=tr("label.opened_files"), command=self.select_all)
         # self.pack(expand=True, side="top")
         self.bind('<<TreeviewSelect>>', self._on_select)
         self._hook_items_inserted: list[callable] = []
@@ -22,8 +23,8 @@ class FileMultiSelectWidget(Treeview):
         self.ctx_menu = tkinter.Menu(self, tearoff=0)
         self.ctx_menu.add_command(label="{clicked_file}", state="disabled")
         self.ctx_menu.add_separator()
-        self.ctx_menu.add_command(label="Open in Explorer", command=self.open_in_explorer)
-        self.ctx_menu.add_command(label="Reset changes", command=self.reset_loadedcinfo_changes,state="disabled")
+        self.ctx_menu.add_command(label=tr("button.open_folder"), command=self.open_in_explorer)
+        self.ctx_menu.add_command(label=tr("button.reset"), command=self.reset_loadedcinfo_changes,state="disabled")
 
 
     def clear(self):
@@ -95,4 +96,3 @@ class FileMultiSelectWidget(Treeview):
                 hook_function(*args)
             except:
                 logger.exception("Error calling hook")
-

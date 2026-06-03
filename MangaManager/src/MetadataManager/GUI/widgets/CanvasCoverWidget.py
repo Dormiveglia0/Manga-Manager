@@ -10,6 +10,7 @@ import _tkinter
 from PIL import Image, ImageTk
 
 from src.Common import ResourceLoader
+from src.Common.i18n import tr
 from src.Common.LoadedComicInfo.CoverActions import CoverActions
 from src.Common.LoadedComicInfo.LoadedComicInfo import LoadedComicInfo
 from src.Settings import SettingHeading
@@ -68,12 +69,12 @@ class CoverFrame(Frame):
         self.configure(pady=5)
         canvas_frame = self
         master.master.bind("<Configure>", self.resized)
-        self.selected_file_path_var = StringVar(canvas_frame, value="No file selected")
-        self.selected_file_var = StringVar(canvas_frame, value="No file selected")
+        self.selected_file_path_var = StringVar(canvas_frame, value=tr("label.no_files_selected"))
+        self.selected_file_var = StringVar(canvas_frame, value=tr("label.no_files_selected"))
         self.cover_subtitle = Label(canvas_frame, background="violet", textvariable=self.selected_file_var)
         self.cover_subtitle.configure(width=25, compound="right", justify="left")
-        self.selected_file_var.set('No file selected')
-        self.tooltip_filename = Hovertip(self, "No file selected", 20)
+        self.selected_file_var.set(tr("label.no_files_selected"))
+        self.tooltip_filename = Hovertip(self, tr("label.no_files_selected"), 20)
         self.cover_subtitle.grid(row=0, sticky="nsew")
         self.grid_columnconfigure(0, weight=1)
         images_frame = Frame(canvas_frame)
@@ -97,7 +98,7 @@ class CoverFrame(Frame):
         self.cover_canvas.action_id = self.cover_canvas.create_text(150, 285, text="", justify="center", fill="yellow",
                                                                     font=('Helvetica 15 bold'))
         self.cover_canvas.no_image_warning_id = self.cover_canvas.create_text(150, 120,
-                                                                              text="No Cover!\nNo image\ncould be\nloaded",
+                                                                              text=tr("cover.no_image"),
                                                                               justify="center", fill="red",
                                                                               state="hidden",
                                                                               font=('Helvetica 28 bold'))
@@ -121,7 +122,7 @@ class CoverFrame(Frame):
         btn.pack(side="left", fill="x", expand=True)
         self.action_buttons.append(btn)
 
-        btn = Button(btn_frame, text="Reset", command=lambda:
+        btn = Button(btn_frame, text=tr("button.reset"), command=lambda:
                      self.cover_action(action=CoverActions.RESET))
         btn.pack(side="left", fill="x", expand=True)
         self.action_buttons.append(btn)
@@ -141,7 +142,7 @@ class CoverFrame(Frame):
                                                                             state="hidden",
                                                                             fill="yellow", font=('Helvetica 15 bold'))
         self.backcover_canvas.no_image_warning_id = self.backcover_canvas.create_text(150, 120,
-                                                                              text="No Cover!\nNo image\ncould be\nloaded",
+                                                                              text=tr("cover.no_image"),
                                                                               justify="center", fill="red",
                                                                               state="hidden",
                                                                               font=('Helvetica 28 bold'))
@@ -164,7 +165,7 @@ class CoverFrame(Frame):
         btn.pack(side="left", fill="x", expand=True)
         self.action_buttons.append(btn)
 
-        btn = Button(btn_frame, text="Reset", command=lambda: self.backcover_action(action=CoverActions.RESET))
+        btn = Button(btn_frame, text=tr("button.reset"), command=lambda: self.backcover_action(action=CoverActions.RESET))
         btn.pack(side="bottom", fill="x", expand=True)
         self.action_buttons.append(btn)
 
@@ -209,10 +210,10 @@ class CoverFrame(Frame):
                     cover = loaded_cinfo.new_cover_cache
                 # Show the Action label
                 front_canva.itemconfig(front_canva.action_id,
-                                       text="Append" if
-                                       lcinfo_action == CoverActions.APPEND else "Replace", state="normal")
+                                       text=tr("cover.append") if
+                                       lcinfo_action == CoverActions.APPEND else tr("cover.replace"), state="normal")
             case CoverActions.DELETE:
-                front_canva.itemconfig(front_canva.action_id, text="Delete", state="normal")
+                front_canva.itemconfig(front_canva.action_id, text=tr("cover.delete"), state="normal")
             case _:
                 front_canva.itemconfig(front_canva.overlay_id, state="hidden")
                 front_canva.itemconfig(front_canva.action_id, text="", state="normal")
@@ -261,10 +262,10 @@ class CoverFrame(Frame):
                     cover = loaded_cinfo.new_backcover_cache
                 # Show the Action label
                 back_canva.itemconfig(back_canva.action_id,
-                                      text="Append" if
-                                      lcinfo_action == CoverActions.APPEND else "Replace",state="normal")
+                                      text=tr("cover.append") if
+                                      lcinfo_action == CoverActions.APPEND else tr("cover.replace"),state="normal")
             case CoverActions.DELETE:
-                back_canva.itemconfig(back_canva.action_id, text="Delete", state="normal")
+                back_canva.itemconfig(back_canva.action_id, text=tr("cover.delete"), state="normal")
             case _:
                 back_canva.itemconfig(back_canva.overlay_id, state="hidden")
                 back_canva.itemconfig(back_canva.action_id, text="", state="normal")
@@ -273,7 +274,7 @@ class CoverFrame(Frame):
         self.update()
 
     def clear(self):
-        self.tooltip_filename.text = "No file selected"
+        self.tooltip_filename.text = tr("label.no_files_selected")
         try:
             self.cover_canvas.itemconfig(self.cover_canvas.image_id, state="hidden")
         except _tkinter.TclError as e:
@@ -344,11 +345,11 @@ class CoverFrame(Frame):
         self.cover_canvas.scale("all", -1, 1, 0.63, 0.87)
 
         self.update()
-        self.cover_canvas.itemconfig(self._text_id, text="Replace")
+        self.cover_canvas.itemconfig(self._text_id, text=tr("cover.replace"))
         self.update()
-        self.cover_canvas.itemconfig(self._text_id, text="Delete")
+        self.cover_canvas.itemconfig(self._text_id, text=tr("cover.delete"))
         self.update()
-        self.cover_canvas.itemconfig(self._text_id, text="Append")
+        self.cover_canvas.itemconfig(self._text_id, text=tr("cover.append"))
         self.update()
 
     def hide_back_image(self):

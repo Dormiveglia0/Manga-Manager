@@ -7,6 +7,7 @@ from pathlib import Path
 from tkinter import font
 from tkinter import ttk, Frame
 
+from src.Common.i18n import tr
 from src.MetadataManager.GUI.widgets import ScrolledFrameWidget
 
 
@@ -151,7 +152,7 @@ class FileChooser(tkinter.Toplevel):
         glob_frame.pack(side="right")
         glob_frame.tooltip = Hovertip(glob_frame, "Find all files with the provided glob. (Enables recursiveness)", 20)
 
-        tkinter.Label(glob_frame,text="Glob:  ⁱ").pack(side="left")
+        tkinter.Label(glob_frame,text=tr("label.glob")).pack(side="left")
 
         self.glob_entry = ttk.Entry(glob_frame)
         self.glob_entry.insert(0, "*.cbz")
@@ -160,14 +161,14 @@ class FileChooser(tkinter.Toplevel):
 
         self.tree = TreeviewExplorerWidget(master=treeview_frame,selectmode="extended")
         self.tree.on_select_hooks.append(self.on_treeview_select)
-        self.tree.heading("#0", text='Filename', anchor='n')
+        self.tree.heading("#0", text=tr("label.filename"), anchor='n')
         self.tree.pack(expand=True, fill="both")
         self.tree.bind("<FocusIn>", lambda x: self.update_search_bar(self.current_search_path))
 
         footer = Frame(self)
         footer.pack(side="bottom")
 
-        tkinter.Button(footer,text="Accept", command=self.get_selection).pack()
+        tkinter.Button(footer,text=tr("button.accept"), command=self.get_selection).pack()
 
         self.selection = None
         if self.current_search_path:

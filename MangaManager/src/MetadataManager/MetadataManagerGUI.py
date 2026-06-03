@@ -23,7 +23,9 @@ else:
     from tkinter.filedialog import askopenfiles, askdirectory
 from _tkinter import TclError
 from tkinterdnd2.TkinterDnD import Tk
+from src.Common.i18n import tr
 from src.Common.LoadedComicInfo.LoadedComicInfo import LoadedComicInfo
+from src.Common.tag_translation import translate_tags
 from src.MetadataManager.GUI.widgets import ComboBoxWidget, OptionMenuWidget, WidgetManager, ButtonWidget
 from src.MetadataManager.GUI.windows.SettingsWindow import SettingsWindow
 from src.MetadataManager.MetadataManagerLib import MetadataManagerLib
@@ -49,7 +51,7 @@ class GUIApp(Tk, MetadataManagerLib):
         # self.wm_minsize(1000, 660)
         self.tk.eval('package require tile')
         self.geometry("1000x820")
-        self.title("Manga Manager")
+        self.title(tr("app.title"))
 
         self.selected_files_path = None
         self.loaded_cinfo_list: list[LoadedComicInfo] = []
@@ -90,10 +92,10 @@ class GUIApp(Tk, MetadataManagerLib):
         # Floating icons
         frame = Frame(self)
         frame.place(anchor=tkinter.NE, relx=1,rely=0.003)
-        ButtonWidget(master=frame, text="Settings", image=self.settings_icon, font=('Arial', 10), compound="left",
+        ButtonWidget(master=frame, text=tr("button.settings"), image=self.settings_icon, font=('Arial', 10), compound="left",
                      command=self.show_settings).pack(side="left", fill="y", padx=(0, 5))
 
-        ButtonWidget(master=frame, text="About", font=('Arial', 10), command=self.show_about).pack(side="left", fill="y", padx=(0, 5))
+        ButtonWidget(master=frame, text=tr("button.about"), font=('Arial', 10), command=self.show_about).pack(side="left", fill="y", padx=(0, 5))
     def report_callback_exception(self, *_):
         """
         Overrides builtin method so exceptions get loged and are not silent
@@ -385,7 +387,7 @@ class GUIApp(Tk, MetadataManagerLib):
     def fill_from_filename(self) -> None:
         """Handles taking the currently selected file and parsing any information out of it and writing to Empty fields"""
         if not self.selected_files_path:
-            mb.showwarning(self.main_frame, "No files selected", "No files were selected.")
+            mb.showwarning(self.main_frame, tr("message.no_files_selected_title"), tr("message.no_files_selected_body"))
             self.log.warning("No files selected")
             return
 
@@ -431,7 +433,7 @@ class GUIApp(Tk, MetadataManagerLib):
         Handles UI stuff to be started prior to processing such as converting ui data to comicinfo and starting the timer
         """
         if not self.selected_files_path:
-            mb.showwarning(self.main_frame, "No files selected", "No files were selected.")
+            mb.showwarning(self.main_frame, tr("message.no_files_selected_title"), tr("message.no_files_selected_body"))
             self.log.warning("No files selected")
             return
         self.control_mngr.toggle(enabled=False)
@@ -466,6 +468,19 @@ class GUIApp(Tk, MetadataManagerLib):
             # Display new selection data
             self._serialize_cinfolist_to_gui(self.selected_items)
 
+    def translate_tags_from_settings(self):
+        tags_widget = self.widget_mngr.get_widget("Tags")
+        tags_value = tags_widget.get()
+        if tags_value == self.MULTIPLE_VALUES_CONFLICT:
+            mb.showwarning(self.main_frame, tr("message.tags_conflict_title"), tr("message.tags_conflict_body"))
+            return
+        translated = translate_tags(
+            tags_value,
+            Settings().get(SettingHeading.Main, "tag_translation_rules"),
+            conflict_value=self.MULTIPLE_VALUES_CONFLICT,
+        )
+        tags_widget.set(translated)
+
     def _treeview_open_explorer(self, file):
         open_folder(os.path.dirname(file), file)
         ...
@@ -482,25 +497,28 @@ class GUIApp(Tk, MetadataManagerLib):
     def process_fetch_online(self, *_):
         series_name = self.widget_mngr.get_widget("Series").get().strip()
         if series_name == self.MULTIPLE_VALUES_CONFLICT:
-            mb.showwarning(self.main_frame, "Not a valid series name. Multiple values conflict.")
+            mb.showwarning(self.main_frame, tr("message.invalid_series_title"), tr("message.invalid_series_conflict"))
             self.log.info("Not a valid series name - Conflic with other series name in selection")
             return
         if series_name in (None, "") and self.widget_mngr.get_widget("Web").get() in (None,""):
-            mb.showwarning(self.main_frame, "Not a valid series name", "The current series name is empty or not valid.")
+            mb.showwarning(self.main_frame, tr("message.invalid_series_title"), tr("message.invalid_series_body"))
             self.log.info("Not a valid series name - The current series name is empty or not valid.")
             return
 
         # If multiple files are selected, validate that all files have the same series name
         if len(self.selected_items) > 1:
             if not all(series_name == item.cinfo_object.series.strip() for item in self.selected_items):
-                mb.showwarning(self.main_frame, "All series MUST match and may not contain blanks",
-                               "All files' series names are not the same.")
+                mb.showwarning(self.main_frame, tr("message.series_must_match_title"),
+                               tr("message.series_must_match_body"))
                 self.log.info(
                     "All series MUST match and may not contain blanks - All files' series names are not the same.")
                 return
 
         cinfo = self.fetch_online(self._serialize_gui_to_cinfo())
         if cinfo is None:
+            if Settings().get(SettingHeading.ExternalSources, 'default_metadata_source') == "Nhentai":
+                mb.showwarning(self.main_frame, tr("message.nhentai_placeholder_title"),
+                               tr("message.nhentai_placeholder_body"))
             return
 
         self._serialize_cinfolist_to_gui([LoadedComicInfo(None, cinfo, load_default_metadata=False)])

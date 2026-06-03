@@ -9,6 +9,7 @@ from tkinter.ttk import LabelFrame, Label, Notebook, Combobox
 from ExternalSources.MetadataSources import ScraperFactory
 from common.models import ComicInfo
 from src import MM_PATH
+from src.Common.i18n import LANGUAGE_OPTIONS, tr
 from src.Common.LoadedComicInfo.LoadedComicInfo import LoadedComicInfo
 from src.Common.utils import open_folder
 from src.DynamicLibController.models import IMetadataSource
@@ -31,32 +32,36 @@ def template_validation(key_list):
 
 setting_control_map = {
     SettingHeading.Main: {
-        "library_path": SettingControl("library_path", "Library Path", SettingControlType.Text, "",
+        "library_path": SettingControl("library_path", tr("settings.library_path"), SettingControlType.Text, "",
                                        "The path to your library. This location will be opened by default when choosing files"),
-        "covers_folder_path": SettingControl("covers_folder_path", "Covers folder path", SettingControlType.Text, "",
+        "covers_folder_path": SettingControl("covers_folder_path", tr("settings.covers_folder_path"), SettingControlType.Text, "",
                                              "The path to your covers. This location will be opened by default when choosing covers"),
-        "cache_cover_images": SettingControl("cache_cover_images", "Cache cover images", SettingControlType.Bool, True,
+        "cache_cover_images": SettingControl("cache_cover_images", tr("settings.cache_cover_images"), SettingControlType.Bool, True,
                                              "If enabled, the covers of the file will be cached and shown in the ui"),
-        "create_backup_comicinfo": SettingControl("create_backup_comicinfo", "Create Backup XML",
+        "create_backup_comicinfo": SettingControl("create_backup_comicinfo", tr("settings.create_backup_comicinfo"),
                                                   SettingControlType.Bool, True,
                                                   "If enabled, all ComicInfo.xml existing within an archive will be backed up as Old_ComicInfo.xml.bak"),
-        "move_to_template": SettingControl("move_to_template", "Rename filename", SettingControlType.Text, "",
+        "move_to_template": SettingControl("move_to_template", tr("settings.move_to_template"), SettingControlType.Text, "",
                                            tooltip=f"Leave empty to not set.\nAvailable tags: {', '.join(['{' + key + '}' for key in LoadedComicInfo(None, ComicInfo, False).get_template_values().keys()])}",
                                            validate=lambda key, value: '[' + ", ".join(template_validation(
                                                re.findall(r'\{(\w+)\}', value))) + "] are not valid tags" if len(
                                                template_validation(re.findall(r'\{(\w+)\}', value))) != 0 else ""),
-        "clean_ui_on_drag_drop": SettingControl("remove_old_selection_on_drag_drop","Clean previous selection\non drag and drop", SettingControlType.Bool, True, "After you drag and drop, previous selected files will be discarded")
+        "clean_ui_on_drag_drop": SettingControl("remove_old_selection_on_drag_drop", tr("settings.clean_drag_drop"), SettingControlType.Bool, True, "After you drag and drop, previous selected files will be discarded"),
+        "ui_language": SettingControl("ui_language", tr("settings.ui_language"), SettingControlType.Options, "zh_CN"),
+        "tag_translation_rules": SettingControl("tag_translation_rules", tr("settings.tag_translation_rules"),
+                                                SettingControlType.LongText, "",
+                                                tr("settings.tooltip.tag_translation_rules"))
     },
     SettingHeading.WebpConverter: {
-        "default_base_path": SettingControl("default_base_path", "Default base path", SettingControlType.Text, "",
+        "default_base_path": SettingControl("default_base_path", tr("settings.default_base_path"), SettingControlType.Text, "",
                                             "The starting point where the glob will begin looking for files that match the pattern"),
 
     },
     SettingHeading.ExternalSources: {
-        "default_metadata_source": SettingControl("default_metadata_source", "Default metadata source",
+        "default_metadata_source": SettingControl("default_metadata_source", tr("settings.default_metadata_source"),
                                                   SettingControlType.Options,
                                                   "The source that will be hit when looking for metadata"),
-        "default_cover_source": SettingControl("default_cover_source", "Default cover source",
+        "default_cover_source": SettingControl("default_cover_source", tr("settings.default_cover_source"),
                                                SettingControlType.Options,
                                                "The source that will be hit when looking for cover images"),
     },
@@ -66,7 +71,8 @@ setting_control_map = {
 
 # TODO: Load dynamically loaded extensions (this will be moved in another PR)
 providers: list[IMetadataSource] = [ScraperFactory().get_scraper("MangaUpdates"),
-                                    ScraperFactory().get_scraper("AniList")]
+                                    ScraperFactory().get_scraper("AniList"),
+                                    ScraperFactory().get_scraper("Nhentai")]
 
 
 def populate_default_settings():
@@ -81,12 +87,21 @@ def populate_default_settings():
                     continue
 
                 controls.append(value)
-        default_settings[section] = SettingSection(section, section, controls)
+        section_name = {
+            SettingHeading.Main: tr("settings.main"),
+            SettingHeading.WebpConverter: tr("settings.webp_converter"),
+            SettingHeading.ExternalSources: tr("settings.external_sources"),
+            SettingHeading.MessageBox: tr("settings.message_box"),
+        }.get(section, section)
+        default_settings[section] = SettingSection(section_name, section, controls)
 
-    # Setup extension based settings
-    for metadata_source in default_settings[SettingHeading.ExternalSources].values:
-        if metadata_source.key == 'default_metadata_source':
-            metadata_source.set_values([p.name for p in providers])
+    # Setup option based settings
+    for section in default_settings.values():
+        for control in section.values:
+            if control.key == 'default_metadata_source':
+                control.set_values([p.name for p in providers if p is not None])
+            if control.key == 'ui_language':
+                control.set_values(LANGUAGE_OPTIONS)
 
     return default_settings
 
@@ -99,7 +114,7 @@ class SettingsWindow:
 
         settings_window = self.settings_window = tkinter.Toplevel(parent, pady=10, padx=30)
         settings_window.geometry("900x420")
-        settings_window.title("Settings")
+        settings_window.title(tr("window.settings"))
 
         main_frame = tkinter.Frame(settings_window)
         main_frame.pack(fill="both")
@@ -114,10 +129,10 @@ class SettingsWindow:
         self.widgets_frame.pack(expand=True, fill="both")
 
         control_frame = tkinter.Frame(settings_window)
-        ButtonWidget(master=control_frame, text="Save", tooltip="Saves the settings to the config file",
+        ButtonWidget(master=control_frame, text=tr("button.save"), tooltip="Saves the settings to the config file",
                      command=self.save_settings) \
             .pack(side="right", padx=(0, 5))
-        ButtonWidget(master=control_frame, text="Open Settings Folder",
+        ButtonWidget(master=control_frame, text=tr("button.open_settings_folder"),
                      tooltip="Opens the folder where Manga Manager stores it's files",
                      command=lambda x=None: open_folder(folder_path=MM_PATH)) \
             .pack()
@@ -221,5 +236,15 @@ class SettingsWindow:
                 entry.set(str(control.value))
                 entry.pack(side="left", expand=False, fill="x", padx=(5, 30))
                 entry.set(control.value)
+            case SettingControlType.LongText:
+                entry = tkinter.Text(master=parent_frame, width=80, height=6)
+                entry.insert("1.0", str(control.value or ""))
+                entry.pack(side="right", expand=True, fill="x", padx=(5, 30))
+
+                class TextValue:
+                    def get(self):
+                        return entry.get("1.0", "end-1c")
+
+                string_var = TextValue()
 
         return entry, string_var

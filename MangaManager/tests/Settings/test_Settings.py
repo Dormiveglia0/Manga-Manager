@@ -7,9 +7,10 @@ from src.Settings import SettingHeading, Settings
 class SettingsTest(unittest.TestCase):
 
     def tearDown(self):
-        if os.path.exists('settings.ini'):
-            print('Cleaning up created settings.ini')
-            os.remove('settings.ini')
+        for filename in ('settings.ini', 'test_settings.ini'):
+            if os.path.exists(filename):
+                print(f'Cleaning up created {filename}')
+                os.remove(filename)
 
     def test_Settings_will_create_if_nothing_on_disk(self):
         s = Settings()
@@ -26,6 +27,12 @@ class SettingsTest(unittest.TestCase):
     def test_Settings_will_write_default_tag_if_not_exists(self):
         s = Settings()
         self.assertNotEqual(s.get(SettingHeading.ExternalSources, 'default_metadata_source'), '')
+
+    def test_Settings_will_write_ui_language_defaults(self):
+        s = Settings()
+        s._load_test()
+        self.assertEqual(s.get(SettingHeading.Main, 'ui_language'), 'zh_CN')
+        self.assertEqual(s.get(SettingHeading.Main, 'tag_translation_rules'), '')
 
 
 
