@@ -44,8 +44,16 @@ jobs:
             --windowed `
             --name MangaManager `
             --paths MangaManager `
+            --add-data "MangaManager/res;res" `
             --collect-all tkinterdnd2 `
             MangaManager/main.py
+
+      - name: Verify bundled resources
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "dist/MangaManager/_internal/res/languages.json")) {
+            Write-Error "Missing bundled resource: dist/MangaManager/_internal/res/languages.json"
+          }
 
       - name: Copy documentation
         shell: pwsh
