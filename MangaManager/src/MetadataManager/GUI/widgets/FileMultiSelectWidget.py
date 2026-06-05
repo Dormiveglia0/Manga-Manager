@@ -44,6 +44,18 @@ class FileMultiSelectWidget(Treeview):
         # self._call_hook_item_inserted(loaded_cinfo)
         self.select_all()
 
+    def replace_item_path(self, old_path: str, loaded_cinfo: LoadedComicInfo):
+        if old_path == loaded_cinfo.file_path or old_path not in self.content:
+            return
+        was_selected = old_path in self.selection()
+        self.delete(old_path)
+        self.content.pop(old_path, None)
+        super(FileMultiSelectWidget, self).insert("", "end", loaded_cinfo.file_path, text=loaded_cinfo.file_name,
+                                                  tags=("darkmode", "important"))
+        self.content[loaded_cinfo.file_path] = loaded_cinfo
+        if was_selected:
+            self.selection_add(loaded_cinfo.file_path)
+
     def _on_select(self, *_):
         prev_selection = copy.copy(self.prev_selection)
         selected = [self.content.get(item) for item in self.selection()]

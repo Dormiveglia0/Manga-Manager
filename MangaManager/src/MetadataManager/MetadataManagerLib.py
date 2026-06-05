@@ -114,6 +114,9 @@ class MetadataManagerLib(_IMetadataManagerLib, ABC):
                     loaded_cinfo.write_metadata()
                     loaded_cinfo.has_changes = False
                     self.on_processed_item(loaded_cinfo)
+                except FileExistsError as e:
+                    logger.error("Failed to write changes because the target file already exists", exc_info=True)
+                    self.on_writing_error(exception=e, loaded_info=loaded_cinfo)
                 except PermissionError as e:
                     logger.error("Failed to write changes because of missing permissions "
                                  "or because other program has the file opened", exc_info=True)
@@ -251,5 +254,4 @@ class MetadataManagerLib(_IMetadataManagerLib, ABC):
             logger.exception(str(e))
             self.on_manga_not_found(e, partial_comic_info)
             return None
-
 

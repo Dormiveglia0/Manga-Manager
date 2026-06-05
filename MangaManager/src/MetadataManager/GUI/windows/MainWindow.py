@@ -93,42 +93,51 @@ class MainWindow(GUIApp):
         # Action Buttons
         control_frame = self.control_frame_top
 
-        btn = ButtonWidget(master=control_frame, text=tr("button.open_files"),
+        open_group = tkinter.LabelFrame(control_frame, text=tr("label.open_actions"), padx=6, pady=3)
+        open_group.pack(side="left", padx=(0, 8))
+        edit_group = tkinter.LabelFrame(control_frame, text=tr("label.edit_actions"), padx=6, pady=3)
+        edit_group.pack(side="left", padx=(0, 8))
+        save_group = tkinter.LabelFrame(control_frame, text=tr("label.save_actions"), padx=6, pady=3)
+        save_group.pack(side="left", padx=(0, 8))
+        tool_group = tkinter.LabelFrame(control_frame, text=tr("label.tool_actions"), padx=6, pady=3)
+        tool_group.pack(side="left", padx=(0, 8))
+
+        btn = ButtonWidget(master=open_group, text=tr("button.open_files"),
                            tooltip=tr("tooltip.open_files"))
         btn.configure(image=self.open_file_icon, command=self.select_files, compound="left")
         btn.pack(side="left", fill="y", padx=(0, 5))
         self.control_mngr.append(btn)
 
-        btn = ButtonWidget(master=control_frame, text=tr("button.open_folder"))
+        btn = ButtonWidget(master=open_group, text=tr("button.open_folder"), tooltip=tr("tooltip.open_folder"))
         btn.configure(image=self.open_folder_icon, command=self.select_folder, compound="left")
         btn.pack(side="left", fill="y", padx=(0, 5))
         self.control_mngr.append(btn)
 
-        self.clear_btn = ButtonWidget(master=control_frame, text=tr("button.clear"), tooltip=tr("tooltip.clear"))
+        self.clear_btn = ButtonWidget(master=edit_group, text=tr("button.clear"), tooltip=tr("tooltip.clear"))
         self.clear_btn.configure(image=self.clear_icon, command=self.widget_mngr.clean_widgets, compound="left")
         self.clear_btn['state'] = 'disabled'
         self.clear_btn.pack(side="left", fill="y", padx=(0, 5))
         self.control_mngr.append(self.clear_btn)
 
-        self.fetch_online_btn = ButtonWidget(master=control_frame, text=tr("button.fetch_online"))
+        self.fetch_online_btn = ButtonWidget(master=edit_group, text=tr("button.fetch_online"), tooltip=tr("tooltip.fetch_online"))
         self.fetch_online_btn.configure(image=self.fetch_online_icon, command=self.process_fetch_online, compound="left")
         self.fetch_online_btn['state'] = 'disabled'
         self.fetch_online_btn.pack(side="left", fill="y", padx=(0, 5))
         self.control_mngr.append(self.fetch_online_btn)
 
-        self.process_btn = ButtonWidget(master=control_frame, text=tr("button.process"), tooltip=tr("tooltip.process"))
+        self.process_btn = ButtonWidget(master=save_group, text=tr("button.process"), tooltip=tr("tooltip.process"))
         self.process_btn.configure(command=self.pre_process, image=self.save_icon, compound="left")
         self.process_btn['state'] = 'disabled'
         self.process_btn.pack(side="left", fill="y", padx=(0, 5))
         self.control_mngr.append(self.process_btn)
 
-        self.fill_from_filename_btn = ButtonWidget(master=control_frame, text=tr("button.filename_fill"), tooltip=tr("tooltip.filename_fill"))
+        self.fill_from_filename_btn = ButtonWidget(master=tool_group, text=tr("button.filename_fill"), tooltip=tr("tooltip.filename_fill"))
         self.fill_from_filename_btn.configure(image=self.filename_fill_icon, command=self.fill_from_filename, compound="left")
         self.fill_from_filename_btn['state'] = 'disabled'
         self.fill_from_filename_btn.pack(side="left", fill="y", padx=(0, 5))
         self.control_mngr.append(self.fill_from_filename_btn)
 
-        self.cover_manager_btn = ButtonWidget(master=control_frame, text=tr("button.cover_manager"), tooltip=tr("tooltip.cover_manager"))
+        self.cover_manager_btn = ButtonWidget(master=tool_group, text=tr("button.cover_manager"), tooltip=tr("tooltip.cover_manager"))
         self.cover_manager_btn.configure(command=lambda: CoverManager(self, self))
         self.cover_manager_btn['state'] = 'disabled'
         self.cover_manager_btn.pack(side="left", fill="y", padx=(0, 5))
@@ -178,28 +187,29 @@ class MainWindow(GUIApp):
         parent_frame.pack(side="right", expand=True, fill="both")
         frame = Frame(parent_frame)
         frame.pack(fill="both", side="top")
-        label = tkinter.Label(frame, text="Series")
+        label = tkinter.Label(frame, text=tr("label.series"))
         label.pack(fill="x", expand=False, side="top")
         self.widget_mngr.Series = ComboBoxWidget(frame, cinfo_name="Series", label_text="",
-                                                 tooltip="The name of the series").pack(side="left", expand=True,
+                                                 tooltip=tr("label.series")).pack(side="left", expand=True,
                                                                                         fill="x")
         self.widget_mngr.Series.label = label
-        btn = ButtonWidget(master=frame, text="⋯", tooltip="If one file selected, load the filename",
+        btn = ButtonWidget(master=frame, text="⋯", tooltip=tr("tooltip.filename_fill"),
                      command=self._fill_filename)
         btn.pack(side="right")
         self.control_mngr.append(btn)
-        btn = ButtonWidget(master=frame, text="⋯F", tooltip="If one file selected, load the FOLDER name",
+        btn = ButtonWidget(master=frame, text="⋯F", tooltip=tr("tooltip.filename_fill"),
                      command=self._fill_foldername)
         btn.pack(side="right")
         self.control_mngr.append(btn)
         self.widget_mngr.LocalizedSeries = ComboBoxWidget(parent_frame, cinfo_name="LocalizedSeries",
-                                                          label_text="LocalizedSeries",
-                                                          tooltip="The translated series name").pack()
+                                                          label_text=tr("label.localized_series"),
+                                                          tooltip=tr("label.localized_series")).pack()
         self.widget_mngr.SeriesSort = ComboBoxWidget(parent_frame, cinfo_name="SeriesSort",
-                                                     label_text="Series Sort").pack()
+                                                     label_text=tr("label.series_sort")).pack()
 
         self.widget_mngr.Title = ComboBoxWidget(parent_frame, cinfo_name="Title",
-                                                tooltip="The title of the chapter").pack()
+                                                label_text=tr("label.title"),
+                                                tooltip=tr("label.title")).pack()
 
         # Summary and Review widget
         long_text_notebook = Notebook(parent_frame, height=95)
@@ -207,27 +217,27 @@ class MainWindow(GUIApp):
 
         tab = ScrolledFrameWidget(long_text_notebook, scrolltype="vertical")
         summary_frame = tab.create_frame(fill="both", expand=True)
-        long_text_notebook.add(tab, text="Summary")
+        long_text_notebook.add(tab, text=tr("label.summary"))
         self.widget_mngr.Summary = LongTextWidget(summary_frame, cinfo_name="Summary", label_text="").pack(fill="both",
                                                                                                            expand="True")
 
         tab = ScrolledFrameWidget(long_text_notebook, scrolltype="vertical",)
         review_frame = tab.create_frame(fill="both",expand=True)
-        long_text_notebook.add(tab, text="Review")
+        long_text_notebook.add(tab, text=tr("label.review"))
         self.widget_mngr.Review = LongTextWidget(review_frame, cinfo_name="Review", label_text="").pack(fill="both",
                                                                                                         expand="True")
 
-        self.widget_mngr.Genre = ComboBoxWidget(parent_frame, cinfo_name="Genre").pack()
+        self.widget_mngr.Genre = ComboBoxWidget(parent_frame, cinfo_name="Genre", label_text=tr("label.genre")).pack()
         tags_frame = Frame(parent_frame)
         tags_frame.pack(fill="both", expand=True)
-        self.widget_mngr.Tags = ComboBoxWidget(tags_frame, cinfo_name="Tags").pack(side="left", expand=True, fill="x")
+        self.widget_mngr.Tags = ComboBoxWidget(tags_frame, cinfo_name="Tags", label_text=tr("label.tags")).pack(side="left", expand=True, fill="x")
         self.translate_tags_btn = ButtonWidget(master=tags_frame, text=tr("button.translate_tags"),
                                                tooltip=tr("tooltip.translate_tags"),
                                                command=self.translate_tags_from_settings)
         self.translate_tags_btn['state'] = 'disabled'
         self.translate_tags_btn.pack(side="right", fill="y", padx=(10, 0))
         self.control_mngr.append(self.translate_tags_btn)
-        self.widget_mngr.Web = ComboBoxWidget(parent_frame, cinfo_name="Web").pack()
+        self.widget_mngr.Web = ComboBoxWidget(parent_frame, cinfo_name="Web", label_text=tr("label.web")).pack()
 
         combo_width = 17
         numbering = Frame(parent_frame)
@@ -235,19 +245,22 @@ class MainWindow(GUIApp):
         numbering.pack(fill="both", expand=True)
 
         self.widget_mngr.Number = ComboBoxWidget(numbering, "Number", width=combo_width,
-                                                 tooltip="The chapter absolute number") \
+                                                 label_text=tr("label.number"),
+                                                 tooltip=tr("label.number")) \
             .pack(side="left", expand=False, fill="x")
         self.widget_mngr.Volume = ComboBoxWidget(numbering, "Volume", width=combo_width,
+                                                 label_text=tr("label.volume"),
                                                  validation="int", default="-1") \
             .pack(side="left", expand=False, fill="x", padx=(10, 0))
 
         self.widget_mngr.Count = ComboBoxWidget(numbering, "Count", width=combo_width,
+                                                label_text=tr("label.count"),
                                                 validation="int", default="-1") \
             .pack(side="left", expand=False, fill="x", padx=(10, 0))
-        self.widget_mngr.Format = OptionMenuWidget(numbering, "Format", "Format", combo_width, 18, "",
+        self.widget_mngr.Format = OptionMenuWidget(numbering, "Format", tr("label.format"), combo_width, 18, "",
                                                    Formats) \
             .pack(side="left", expand=False, fill="x", padx=(10, 0))
-        self.widget_mngr.Manga = OptionMenuWidget(numbering, "Manga", "Manga", combo_width, 18,
+        self.widget_mngr.Manga = OptionMenuWidget(numbering, "Manga", tr("label.manga"), combo_width, 18,
                                                   "Unknown", ("Unknown", "Yes", "No", "YesAndRightToLeft")) \
             .pack(side="left", expand=False, fill="x", padx=(10, 0))
 
@@ -256,15 +269,18 @@ class MainWindow(GUIApp):
         numbering2.pack(fill="both", expand=True)
 
         self.widget_mngr.Year = ComboBoxWidget(numbering2, "Year", width=combo_width,
+                                               label_text=tr("label.year"),
                                                validation="int", default="-1") \
             .pack(side="left", expand=False, fill="x")
         self.widget_mngr.Month = ComboBoxWidget(numbering2, "Month", width=combo_width,
+                                                label_text=tr("label.month"),
                                                 validation="int", default="-1") \
             .pack(side="left", expand=False, fill="x", padx=(10, 0))
         self.widget_mngr.Day = ComboBoxWidget(numbering2, "Day", width=combo_width,
+                                              label_text=tr("label.day"),
                                               validation="int", default="-1") \
             .pack(side="left", expand=False, fill="x", padx=(10, 0))
-        self.widget_mngr.AgeRating = OptionMenuWidget(numbering2, "AgeRating", "Age Rating", combo_width, 18,
+        self.widget_mngr.AgeRating = OptionMenuWidget(numbering2, "AgeRating", tr("label.age_rating"), combo_width, 18,
                                                       "Unknown", AgeRating.list()) \
             .pack(side="left", expand=False, fill="x", padx=(10, 0))
 
@@ -272,29 +288,29 @@ class MainWindow(GUIApp):
                                                       width=combo_width + 1, default="", default_values=languages) \
             .pack(side="left", expand=False, fill="x", padx=(10, 0))
 
-        self.widget_mngr.Notes = ComboBoxWidget(parent_frame, cinfo_name="Notes").pack()
+        self.widget_mngr.Notes = ComboBoxWidget(parent_frame, cinfo_name="Notes", label_text=tr("label.notes")).pack()
 
         #################
         # People column
         #################
         parent_frame = Frame(self.people_info_frame, padx=20)
         parent_frame.pack(side="right", expand=True, fill="both")
-        self.widget_mngr.Writer = ComboBoxWidget(parent_frame, "Writer").pack()
-        self.widget_mngr.Penciller = ComboBoxWidget(parent_frame, "Penciller").pack()
-        self.widget_mngr.Inker = ComboBoxWidget(parent_frame, "Inker").pack()
-        self.widget_mngr.Colorist = ComboBoxWidget(parent_frame, "Colorist").pack()
-        self.widget_mngr.Letterer = ComboBoxWidget(parent_frame, "Letterer").pack()
+        self.widget_mngr.Writer = ComboBoxWidget(parent_frame, "Writer", label_text=tr("label.writer")).pack()
+        self.widget_mngr.Penciller = ComboBoxWidget(parent_frame, "Penciller", label_text=tr("label.penciller")).pack()
+        self.widget_mngr.Inker = ComboBoxWidget(parent_frame, "Inker", label_text=tr("label.inker")).pack()
+        self.widget_mngr.Colorist = ComboBoxWidget(parent_frame, "Colorist", label_text=tr("label.colorist")).pack()
+        self.widget_mngr.Letterer = ComboBoxWidget(parent_frame, "Letterer", label_text=tr("label.letterer")).pack()
         self.widget_mngr.CoverArtist = ComboBoxWidget(parent_frame, "CoverArtist", label_text=tr("label.cover_artist")).pack()
-        self.widget_mngr.Editor = ComboBoxWidget(parent_frame, "Editor").pack()
-        self.widget_mngr.Translator = ComboBoxWidget(parent_frame, "Translator").pack()
-        self.widget_mngr.Publisher = ComboBoxWidget(parent_frame, "Publisher").pack()
-        self.widget_mngr.Imprint = ComboBoxWidget(parent_frame, "Imprint").pack()
-        self.widget_mngr.Characters = ComboBoxWidget(parent_frame, "Characters").pack()
-        self.widget_mngr.Teams = ComboBoxWidget(parent_frame, "Teams").pack()
-        self.widget_mngr.Locations = ComboBoxWidget(parent_frame, "Locations").pack()
+        self.widget_mngr.Editor = ComboBoxWidget(parent_frame, "Editor", label_text=tr("label.editor")).pack()
+        self.widget_mngr.Translator = ComboBoxWidget(parent_frame, "Translator", label_text=tr("label.translator")).pack()
+        self.widget_mngr.Publisher = ComboBoxWidget(parent_frame, "Publisher", label_text=tr("label.publisher")).pack()
+        self.widget_mngr.Imprint = ComboBoxWidget(parent_frame, "Imprint", label_text=tr("label.imprint")).pack()
+        self.widget_mngr.Characters = ComboBoxWidget(parent_frame, "Characters", label_text=tr("label.characters")).pack()
+        self.widget_mngr.Teams = ComboBoxWidget(parent_frame, "Teams", label_text=tr("label.teams")).pack()
+        self.widget_mngr.Locations = ComboBoxWidget(parent_frame, "Locations", label_text=tr("label.locations")).pack()
         self.widget_mngr.MainCharacterOrTeam = ComboBoxWidget(parent_frame, "MainCharacterOrTeam",
                                                               label_text=tr("label.main_character_or_team")).pack()
-        self.widget_mngr.Other = ComboBoxWidget(parent_frame, "Other").pack()
+        self.widget_mngr.Other = ComboBoxWidget(parent_frame, "Other", label_text=tr("label.other")).pack()
 
         #################
         # Numbering column
@@ -338,11 +354,11 @@ class MainWindow(GUIApp):
 
         self.widget_mngr.PageCount = ComboBoxWidget(parent_frame, "PageCount", label_text=tr("label.page_count"),
                                                     width=combo_width,
-                                                    validation="int", default="0")
+                                                    validation="int", default="0").pack()
         self.widget_mngr.ScanInformation = ComboBoxWidget(parent_frame, cinfo_name="ScanInformation",
                                                           label_text=tr("label.scan_information")).pack()
         self.widget_mngr.GTIN = ComboBoxWidget(parent_frame, cinfo_name="GTIN",
-                                                          label_text="GTIN").pack()
+                                                          label_text=tr("label.gtin")).pack()
 
     def display_bottom_frame(self):
 
@@ -372,8 +388,13 @@ class MainWindow(GUIApp):
         self.image_cover_frame.update_cover_image(new_selection)
 
         # When a file is selected (at least one), then enable the buttons
-        for btn in [self.fetch_online_btn, self.clear_btn, self.process_btn, self.fill_from_filename_btn, self.translate_tags_btn]:
+        for btn in [self.clear_btn, self.process_btn, self.fill_from_filename_btn, self.translate_tags_btn,
+                    self.cover_manager_btn]:
             btn['state'] = 'normal'
+
+        series_value = self.widget_mngr.get_widget("Series").get().strip()
+        web_value = self.widget_mngr.get_widget("Web").get().strip()
+        self.fetch_online_btn['state'] = 'normal' if series_value or web_value else 'disabled'
 
     def on_drop(self,event):
         files_str = event.data

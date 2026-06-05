@@ -49,7 +49,7 @@ class LoadedComicInfo_MetadataTests(unittest.TestCase):
     def setUp(self) -> None:
         print(os.getcwd())
         # Make sure there are no test files else delete them:
-        leftover_files = [listed for listed in os.listdir() if listed.startswith("Test__") and listed.endswith(".cbz")
+        leftover_files = [listed for listed in os.listdir() if listed.startswith("Test__") and (listed.endswith(".cbz") or listed.endswith(".zip"))
                           or listed.startswith("tmp")]
         for file in leftover_files:
             os.remove(file)
@@ -121,6 +121,47 @@ class LoadedComicInfo_MetadataTests(unittest.TestCase):
             with self.subTest(f"Testing individual write metadata - {i + 1}/{len(self.test_files_names)}"):
                 cinfo = LoadedComicInfo(file_names).load_metadata()
                 self.assertEqual(f"This text was modified - {self.random_int}", cinfo.cinfo_object.notes)
+
+    def test_zip_is_normalized_to_cbz_after_write(self):
+        zip_name = "Test__normalize.zip"
+        cbz_name = "Test__normalize.cbz"
+        self.test_files_names.extend([zip_name, cbz_name])
+        with zipfile.ZipFile(zip_name, "w") as zf:
+            cinfo = ComicInfo()
+            cinfo.series = "Before"
+            zf.writestr("ComicInfo.xml", str(cinfo.to_xml()))
+
+        loaded = LoadedComicInfo(zip_name).load_metadata()
+        loaded.cinfo_object.series = "After"
+        loaded.write_metadata()
+
+        self.assertFalse(os.path.exists(zip_name))
+        self.assertTrue(os.path.exists(cbz_name))
+        self.assertEqual(cbz_name, loaded.file_name)
+        self.assertEqual(os.path.abspath(cbz_name), os.path.abspath(loaded.file_path))
+        self.assertEqual("After", LoadedComicInfo(cbz_name).load_metadata().cinfo_object.series)
+
+    def test_zip_normalization_does_not_overwrite_existing_cbz(self):
+        zip_name = "Test__conflict.zip"
+        cbz_name = "Test__conflict.cbz"
+        self.test_files_names.extend([zip_name, cbz_name])
+        with zipfile.ZipFile(zip_name, "w") as zf:
+            cinfo = ComicInfo()
+            cinfo.series = "Zip"
+            zf.writestr("ComicInfo.xml", str(cinfo.to_xml()))
+        with zipfile.ZipFile(cbz_name, "w") as zf:
+            cinfo = ComicInfo()
+            cinfo.series = "Existing"
+            zf.writestr("ComicInfo.xml", str(cinfo.to_xml()))
+
+        loaded = LoadedComicInfo(zip_name).load_metadata()
+        loaded.cinfo_object.series = "After"
+
+        with self.assertRaises(FileExistsError):
+            loaded.write_metadata()
+        self.assertTrue(os.path.exists(zip_name))
+        self.assertTrue(os.path.exists(cbz_name))
+        self.assertEqual("Existing", LoadedComicInfo(cbz_name).load_metadata().cinfo_object.series)
 
     @skip
     def test_simple_backup(self):

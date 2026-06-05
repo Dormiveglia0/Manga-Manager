@@ -255,6 +255,12 @@ class GUIApp(Tk, MetadataManagerLib):
     ############
 
     def on_processed_item(self, loaded_info: LoadedComicInfo):
+        if loaded_info.file_path_before_last_process != loaded_info.file_path:
+            self.selected_files_treeview.replace_item_path(loaded_info.file_path_before_last_process, loaded_info)
+            self.selected_files_path = [
+                loaded_info.file_path if path == loaded_info.file_path_before_last_process else path
+                for path in self.selected_files_path
+            ]
         self.pb.increase_processed()
         self.update_item_saved_status(loaded_info)
         self.update()
@@ -274,6 +280,10 @@ class GUIApp(Tk, MetadataManagerLib):
 
     def on_writing_error(self, exception, loaded_info: LoadedComicInfo):  # pragma: no cover
         self.pb.increase_failed()
+        if isinstance(exception, FileExistsError):
+            mb.showerror(self.main_frame, "Error writing to file",
+                         f"Target CBZ already exists and will not be overwritten:\n{exception.filename or exception}")
+            return
         mb.showerror(self.main_frame, "Error writing to file",
                      "There was an error writing to the file. Please check the logs.")
 
@@ -517,8 +527,12 @@ class GUIApp(Tk, MetadataManagerLib):
         cinfo = self.fetch_online(self._serialize_gui_to_cinfo())
         if cinfo is None:
             if Settings().get(SettingHeading.ExternalSources, 'default_metadata_source') == "Nhentai":
-                mb.showwarning(self.main_frame, tr("message.nhentai_placeholder_title"),
-                               tr("message.nhentai_placeholder_body"))
+                from ExternalSources.MetadataSources import ScraperFactory
+
+                source = ScraperFactory().get_scraper("Nhentai")
+                title_key = source.last_error_title_key or "message.nhentai_network_title"
+                body_key = source.last_error_body_key or "message.nhentai_network_body"
+                mb.showwarning(self.main_frame, tr(title_key), tr(body_key))
             return
 
         self._serialize_cinfolist_to_gui([LoadedComicInfo(None, cinfo, load_default_metadata=False)])

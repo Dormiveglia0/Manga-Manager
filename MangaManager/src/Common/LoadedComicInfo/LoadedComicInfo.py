@@ -45,6 +45,7 @@ class LoadedComicInfo(LoadedFileMetadata, LoadedFileCoverData, ILoadedComicInfo)
 
         self.file_path = path or None
         self.file_name = None if path is None else os.path.basename(path)
+        self.file_path_before_last_process = self.file_path
         logger.debug(f"[{'Loading File':13s}] '{self.file_name}'")
         self.cinfo_object = comicinfo
         if load_default_metadata:
@@ -128,6 +129,12 @@ class LoadedComicInfo(LoadedFileMetadata, LoadedFileCoverData, ILoadedComicInfo)
     def _export_metadata(self) -> str:
         return str(self.cinfo_object.to_xml())
 
+    def _get_normalized_output_path(self) -> str:
+        base_path, extension = os.path.splitext(self.file_path)
+        if extension.lower() == ".zip":
+            return base_path + ".cbz"
+        return self.file_path
+
     # ACTUAL LOGIC
     def _process(self, write_metadata=False, do_convert_to_webp=False, **_):
         logger.info(f"[{'PROCESSING':13s}] Processing file '{self.file_path}'")
@@ -168,19 +175,28 @@ class LoadedComicInfo(LoadedFileMetadata, LoadedFileCoverData, ILoadedComicInfo)
                 with zipfile.ZipFile(tmpname, "w") as zout:  # The temp file where changes will be saved to
                     self._recompress(zin, zout, write_metadata=write_metadata, do_convert_webp=False)
 
-        # Reset cover flags
-        self.cover_action = CoverActions.RESET
-        self.backcover_action = CoverActions.RESET
-
         logger.debug(f"[{'Processing':13s}] Data from old file copied to new file",
                                extra=self._logging_extra)
         # Delete old file and rename new file to old name
+        final_file_path = self._get_normalized_output_path()
+        if final_file_path != self.file_path and os.path.exists(final_file_path):
+            logger.error(f"[{'Processing':13s}] Target CBZ already exists. Aborting ZIP to CBZ conversion: "
+                         f"'{final_file_path}'", extra=self._logging_extra)
+            os.remove(tmpname)
+            raise FileExistsError(final_file_path)
+
         try:
+            self.file_path_before_last_process = self.file_path
             with ArchiveFile(self.file_path, 'r') as zin:
                 assert initial_file_count == len(zin.namelist())
             os.remove(self.file_path)
-            os.rename(tmpname, self.file_path)
-            logger.debug(f"[{'Processing':13s}] Successfully deleted old file and named tempfile as the old file",
+            os.rename(tmpname, final_file_path)
+            if final_file_path != self.file_path:
+                logger.info(f"[{'Processing':13s}] ZIP file normalized to CBZ: '{final_file_path}'",
+                            extra=self._logging_extra)
+                self.file_path = final_file_path
+                self.file_name = os.path.basename(final_file_path)
+            logger.debug(f"[{'Processing':13s}] Successfully deleted old file and named tempfile as the final file",
                                extra=self._logging_extra)
         # If we fail to delete original file we delete temp file effecively aborting the metadata update
         except PermissionError:
@@ -202,6 +218,10 @@ class LoadedComicInfo(LoadedFileMetadata, LoadedFileCoverData, ILoadedComicInfo)
                                extra=self._logging_extra)
             os.remove(tmpname)
             raise
+
+        # Reset cover flags only after the file operation succeeds.
+        self.cover_action = CoverActions.RESET
+        self.backcover_action = CoverActions.RESET
 
         self.original_cinfo_object = copy.copy(self.cinfo_object)
         logger.info(f"[{'Processing':13s}] Successfully recompressed file",
